@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	bin "github.com/gagliardetto/binary"
 	"github.com/gagliardetto/solana-go"
@@ -81,6 +82,8 @@ func main() {
 
 	quoteMint := solana.MustPublicKeyFromBase58("So11111111111111111111111111111111111111112")
 	openBook := solana.MustPublicKeyFromBase58("srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX")
+	cached := make(map[string], 1000000000)
+	now := uint64(time.Now().Unix())
 	program := solana.MustPublicKeyFromBase58("675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8") // serum
 	{
 		var quoteMintOffset uint64 = 432
@@ -134,8 +137,17 @@ func main() {
 				panic(err)
 			}
 
-			fmt.Println(mint.PoolOpenTime, mint.BaseMint.String(), mint.QuoteMint.String())
-			os.Exit(1)
+			baseMint := mint.BaseMint.String()
+
+			if mint.PoolOpenTime > now {
+				continue
+			}
+			if exist := cached[baseMint]; exist {
+				continue
+			}
+
+			cached[baseMint] = true
+			fmt.Println(time.Now().UnixMilli(), "\t", mint.PoolOpenTime, "\t", got.Value.Pubkey.String())
 
 			//mint := bytes[baseMintOffset:baseMintOffsetEnd]
 			//fmt.Println(string(poolOpenTime), string(mint))
