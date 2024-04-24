@@ -103,7 +103,6 @@ func main() {
 			}
 		}()
 	}
-	now := uint64(time.Now().Unix())
 	program := solana.MustPublicKeyFromBase58("675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8") // serum
 	{
 		var quoteMintOffset uint64 = 432
