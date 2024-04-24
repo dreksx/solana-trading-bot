@@ -123,17 +123,18 @@ func main() {
 			if err != nil {
 				panic(err)
 			}
+			t := time.Now()
 			bytes := got.Value.Account.Data.GetBinary()
 			poolOpenTime := binary.LittleEndian.Uint64(bytes[openTimeOffset : openTimeOffset+8])
 			mintValue := solana.PublicKeyFromBytes(bytes[mintOffset : mintOffset+32])
-
+			f := time.Since(t)
 			if poolOpenTime < now {
 				continue
 			}
 			if _, exist := cached[mintValue]; exist {
 				continue
 			}
-			fmt.Println(time.Now().Format(time.RFC3339Nano), "\t", mintValue.String())
+			fmt.Println(time.Now().Format(time.RFC3339Nano), "\t", mintValue.String(), "\t", f)
 
 			cached[mintValue] = struct{}{}
 		}
