@@ -122,6 +122,7 @@ func main() {
 				panic(err)
 			}
 
+			r := time.Now()
 			var mint LiquidityStateV4
 			err = bin.NewBorshDecoder(got.Value.Account.Data.GetBinary()).Decode(&mint)
 			if err != nil {
@@ -134,7 +135,7 @@ func main() {
 			if _, exist := cached[mint.BaseMint]; exist {
 				continue
 			}
-			fmt.Println(time.Now().Format(time.RFC3339Nano), "\t", mint.PoolOpenTime, "\t", mint.BaseMint.String())
+			fmt.Println(time.Now().Format(time.RFC3339Nano), "\t", mint.BaseMint.String(), "\t", time.Until(r))
 
 			cached[mint.BaseMint] = struct{}{}
 		}
