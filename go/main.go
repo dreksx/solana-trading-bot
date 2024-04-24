@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gagliardetto/solana-go"
@@ -58,16 +59,33 @@ type LiquidityStateV4 struct {
 }
 
 func main() {
+	ctx := context.Background()
 	wsURL := os.Getenv("WS_URL")
 	if wsURL == "" {
 		panic("WS_URL env var is required")
 	}
 
-	fmt.Println(wsURL)
+	httpURL := strings.Replace(wsURL, "wss://", "https://", 1)
 	client, err := ws.Connect(context.Background(), wsURL)
 	if err != nil {
 		panic(err)
 	}
+	//
+	r := rpc.New(httpURL)
+	str := "2iD1qz74YRzWoBYSBctpdDdgRaWGS1d7E3FTtWMMWE6G3WKNhcDdjnNEcvG4EMrnwYdawtVkA1oeYmbQrKKue23g"
+	s := solana.MustSignatureFromBase58(str)
+	version := uint64(0)
+	n := time.Now()
+	_, err = r.GetTransaction(ctx, s, &rpc.GetTransactionOpts{
+		MaxSupportedTransactionVersion: &version,
+		Encoding:                       solana.EncodingBase64,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(time.Since(n))
+	os.Exit(1)
 	//OPENBOOK_MARKET := solana.MustPublicKeyFromBase58("srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX")
 
 	quoteMint := solana.MustPublicKeyFromBase58("So11111111111111111111111111111111111111112")
