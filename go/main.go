@@ -7,6 +7,7 @@ import (
 
 	bin "github.com/gagliardetto/binary"
 	"github.com/gagliardetto/solana-go"
+	"github.com/gagliardetto/solana-go/programs/token"
 	"github.com/gagliardetto/solana-go/rpc"
 	"github.com/gagliardetto/solana-go/rpc/ws"
 )
@@ -128,6 +129,8 @@ func main() {
 			}
 
 			var mint LiquidityStateV4
+			var tokAcc token.Account
+
 			err = bin.NewBorshDecoder(got.Value.Account.Data.GetBinary()).Decode(&mint)
 			if err != nil {
 				panic(err)
