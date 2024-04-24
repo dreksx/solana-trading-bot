@@ -5,11 +5,66 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/davecgh/go-spew/spew"
+	bin "github.com/gagliardetto/binary"
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/rpc"
 	"github.com/gagliardetto/solana-go/rpc/ws"
 )
+
+type LiquidityStateV4 struct {
+	Status                 uint64
+	Nonce                  uint64
+	MaxOrder               uint64
+	Depth                  uint64
+	BaseDecimal            uint64
+	QuoteDecimal           uint64
+	State                  uint64
+	ResetFlag              uint64
+	MinSize                uint64
+	VolMaxCutRatio         uint64
+	AmountWaveRatio        uint64
+	BaseLotSize            uint64
+	QuoteLotSize           uint64
+	MinPriceMultiplier     uint64
+	MaxPriceMultiplier     uint64
+	SystemDecimalValue     uint64
+	MinSeparateNumerator   uint64
+	MinSeparateDenominator uint64
+	TradeFeeNumerator      uint64
+	TradeFeeDenominator    uint64
+	PnlNumerator           uint64
+	PnlDenominator         uint64
+	SwapFeeNumerator       uint64
+	SwapFeeDenominator     uint64
+	BaseNeedTakePnl        uint64
+	QuoteNeedTakePnl       uint64
+	QuoteTotalPnl          uint64
+	BaseTotalPnl           uint64
+	PoolOpenTime           uint64
+	PunishPcAmount         uint64
+	PunishCoinAmount       uint64
+	OrderbookToInitTime    uint64
+	SwapBaseInAmount       solana.PublicKey
+	SwapQuoteOutAmount     solana.PublicKey
+	SwapBase2QuoteFee      uint64
+	SwapQuoteInAmount      solana.PublicKey
+	SwapBaseOutAmount      solana.PublicKey
+	SwapQuote2BaseFee      uint64
+	BaseVault              solana.PublicKey
+	QuoteVault             solana.PublicKey
+	BaseMint               solana.PublicKey // 32 bytes
+	QuoteMint              solana.PublicKey // 32 bytes
+	LpMint                 solana.PublicKey // 32 bytes
+	OpenOrders             solana.PublicKey // 32 bytes
+	MarketId               solana.PublicKey // 32 bytes
+	MarketProgramId        solana.PublicKey // 32 bytes
+	TargetOrders           solana.PublicKey // 32 bytes
+	WithdrawQueue          solana.PublicKey // 32 bytes
+	LpVault                solana.PublicKey // 32 bytes
+	Owner                  solana.PublicKey // 32 bytes
+	LpReserve              uint64
+	Padding                [3]uint64 // To handle the seq(u64(), 3, 'padding')
+}
 
 func main() {
 	wsURL := os.Getenv("WS_URL")
@@ -72,7 +127,17 @@ func main() {
 				panic(err)
 			}
 
-			spew.Dump(got)
+			var mint LiquidityStateV4
+			err = bin.NewBorshDecoder(got.Value.Account.Data.GetBinary()).Decode(&mint)
+			if err != nil {
+				panic(err)
+			}
+
+			fmt.Println(mint.PoolOpenTime, mint.BaseMint.String(), mint.QuoteMint.String())
+			os.Exit(1)
+
+			//mint := bytes[baseMintOffset:baseMintOffsetEnd]
+			//fmt.Println(string(poolOpenTime), string(mint))
 		}
 	}
 }
