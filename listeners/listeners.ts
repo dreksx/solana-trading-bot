@@ -3,11 +3,12 @@ import bs58 from 'bs58';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { EventEmitter } from 'events';
+import WebSocket from 'ws';
 
 export class Listeners extends EventEmitter {
   private subscriptions: number[] = [];
 
-  constructor(private readonly connection: Connection) {
+  constructor(private readonly connection: Connection, private readonly connectionPremium: WebSocket) {
     super();
   }
 
@@ -16,7 +17,8 @@ export class Listeners extends EventEmitter {
     quoteToken: Token;
     autoSell: boolean;
     cacheNewMarkets: boolean;
-  }) {
+  }) {    
+    const transactionListener = await this.subscribeToTransactions(config);
     // if (config.cacheNewMarkets) {
     //   const openBookSubscription = await this.subscribeToOpenBookMarkets(config);
     //   this.subscriptions.push(openBookSubscription);
@@ -31,6 +33,49 @@ export class Listeners extends EventEmitter {
     // }
   }
 
+
+  private async subscribeToTransactions(config: { quoteToken: Token }) {
+    const connectionPremium = this.connectionPremium
+    let sendRequest = function() {
+      const request = {
+        jsonrpc: "2.0",
+        id: 420,
+        method: "transactionSubscribe",
+        params: [
+            {
+                accountInclude: ["25hAyBQfoDhfWx9ay6rarbgvWGwDdNqcHsXS3jQ3mTDJ"]
+            },
+            {
+                commitment: "processed",
+                encoding: "base64",
+                transactionDetails: "full",
+                showRewards: true,
+                maxSupportedTransactionVersion: 0
+            }
+        ]
+    };
+    connectionPremium.send(JSON.stringify(request));
+  }
+
+    this.connectionPremium.on("open", function open() {
+      console.log('WebSocket is open');
+      sendRequest();  // Send a request once the WebSocket is open
+    });
+
+    const self = this
+    this.connectionPremium.on('message', function incoming(data: any) {
+      const messageStr = data.toString('utf8');
+      try {
+          const messageObj = JSON.parse(messageStr);
+          const transaction = messageObj?.params?.result?.transaction;
+          if (transaction && transaction.meta.err === null) {
+            self.emit('transaction', messageObj.params.result);
+          }
+      } catch (e) {
+          console.error('Failed to parse JSON:', e);
+      }
+    });
+  }
   private async subscribeToOpenBookMarkets(config: { quoteToken: Token }) {
     return this.connection.onProgramAccountChange(
       MAINNET_PROGRAM_ID.OPENBOOK_MARKET,

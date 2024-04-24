@@ -4,6 +4,8 @@ import { Connection, KeyedAccountInfo, Keypair } from '@solana/web3.js';
 import { LIQUIDITY_STATE_LAYOUT_V4, MARKET_STATE_LAYOUT_V3, Token, TokenAmount } from '@raydium-io/raydium-sdk';
 import { AccountLayout, getAssociatedTokenAddressSync } from '@solana/spl-token';
 import { Bot, BotConfig } from './bot';
+import WebSocket from 'ws';
+
 import { DefaultTransactionExecutor, TransactionExecutor } from './transactions';
 import {
   getToken,
@@ -12,6 +14,7 @@ import {
   COMMITMENT_LEVEL,
   RPC_ENDPOINT,
   RPC_WEBSOCKET_ENDPOINT,
+  RPC_WEBSOCKET_ENDPOINT_PREMIUM,
   PRE_LOAD_EXISTING_MARKETS,
   LOG_LEVEL,
   CHECK_IF_MUTABLE,
@@ -54,6 +57,8 @@ const connection = new Connection(RPC_ENDPOINT, {
   wsEndpoint: RPC_WEBSOCKET_ENDPOINT,
   commitment: COMMITMENT_LEVEL,
 });
+
+const connectionPremium = new WebSocket(RPC_WEBSOCKET_ENDPOINT_PREMIUM);
 
 function printDetails(wallet: Keypair, quoteToken: Token, bot: Bot) {
   logger.info(`  
@@ -205,7 +210,7 @@ const runListener = async () => {
   }
 
   const runTimestamp = Math.floor(new Date().getTime() / 1000);
-  const listeners = new Listeners(connection);
+  const listeners = new Listeners(connection, connectionPremium);
   await listeners.start({
     walletPublicKey: wallet.publicKey,
     quoteToken,
@@ -218,6 +223,11 @@ const runListener = async () => {
     marketCache.save(updatedAccountInfo.accountId.toString(), marketState);
   });
 
+
+  listeners.on('transaction', async (value: any) => {
+    logger.trace(value.signature)
+  });
+
   listeners.on('pool', async (updatedAccountInfo: KeyedAccountInfo) => {
     const poolState = LIQUIDITY_STATE_LAYOUT_V4.decode(updatedAccountInfo.accountInfo.data);
     const poolOpenTime = parseInt(poolState.poolOpenTime.toString());
@@ -225,7 +235,7 @@ const runListener = async () => {
 
     if (!exists && poolOpenTime > runTimestamp) {
 
-     poolCache.save(updatedAccountInfo.accountId.toString(), poolState);
+      poolCache.save(updatedAccountInfo.accountId.toString(), poolState);
       //await bot.buy(updatedAccountInfo.accountId, poolState);
     }
   });
