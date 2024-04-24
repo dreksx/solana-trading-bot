@@ -118,7 +118,7 @@ func main() {
 
 		var mint LiquidityStateV4
 		openTimeOffset := 224
-		// mintOffset := 400
+		mintOffset := 400
 		for {
 			got, err := sub.Recv()
 			if err != nil {
@@ -126,7 +126,7 @@ func main() {
 			}
 			bytes := got.Value.Account.Data.GetBinary()
 			poolOpenTime := binary.LittleEndian.Uint64(bytes[openTimeOffset : openTimeOffset+8])
-			mintValue := solana.PublicKeyFromBytes(bytes[400 : 400+32])
+			mintValue := solana.PublicKeyFromBytes(bytes[mintOffset : mintOffset+32])
 
 			if poolOpenTime < now {
 				continue
@@ -136,7 +136,7 @@ func main() {
 			}
 			fmt.Println(time.Now().Format(time.RFC3339Nano), "\t", mintValue.String())
 
-			cached[mint.BaseMint] = struct{}{}
+			cached[mintValue] = struct{}{}
 		}
 	}
 }
