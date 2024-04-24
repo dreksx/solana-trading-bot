@@ -6,6 +6,7 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
+target
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
@@ -137,3 +138,4 @@ pnpm-lock.yaml
 
 # Visual Studio Code 
 *.code-workspace
+/rust/dreks/target/
