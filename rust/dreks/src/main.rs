@@ -12,11 +12,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let ps_client = PubsubClient::new(&env.ws_url.to_string()).await?;
 
-    ps_client.
-    let (mut accounts, unsubscriber) = ps_client.slot_subscribe().await?;
+    let (mut accs, unsubscriber) = ps_client.slot_subscribe().await?;
 
     let mut count = 0;
-    while let Some(response) = accounts.next().await {
+    while let Some(response) = accs.next().await {
         println!("{:?}", response);
         count += 1;
         if count >= 5 {
