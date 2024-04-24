@@ -24,10 +24,37 @@ func main() {
 	}
 	//OPENBOOK_MARKET := solana.MustPublicKeyFromBase58("srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX")
 
+	quoteMint := solana.MustPublicKeyFromBase58("So11111111111111111111111111111111111111112")
+	openBook := solana.MustPublicKeyFromBase58("srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX")
 	program := solana.MustPublicKeyFromBase58("675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8") // serum
 	{
+		var quoteMintOffset uint64 = 432
+		var openBookOffset uint64 = 560
+		var statusOffset uint64 = 0
+		// Assuming 'marketProgramId' follows 'marketId'
+		//marketProgramIDOffset := 864 + 32 + 32 // Adjust according to actual layout
 
-		filters := []rpc.RPCFilter{}
+		filters := []rpc.RPCFilter{
+
+			{
+				Memcmp: &rpc.RPCFilterMemcmp{
+					Offset: quoteMintOffset,
+					Bytes:  solana.Base58(quoteMint.Bytes()),
+				},
+			},
+			{
+				Memcmp: &rpc.RPCFilterMemcmp{
+					Offset: openBookOffset, // replace with correct offset for 'marketProgramId'
+					Bytes:  solana.Base58(openBook.Bytes()),
+				},
+			},
+			{
+				Memcmp: &rpc.RPCFilterMemcmp{
+					Offset: statusOffset, // replace with correct offset for 'status'
+					Bytes:  solana.Base58([]byte{6, 0, 0, 0, 0, 0, 0, 0}),
+				},
+			},
+		}
 		sub, err := client.ProgramSubscribeWithOpts(program, "processed", "", filters)
 
 		//sub, err := client.AccountSubscribe(
