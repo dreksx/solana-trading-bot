@@ -7,7 +7,6 @@ import (
 
 	bin "github.com/gagliardetto/binary"
 	"github.com/gagliardetto/solana-go"
-	"github.com/gagliardetto/solana-go/programs/token"
 	"github.com/gagliardetto/solana-go/rpc"
 	"github.com/gagliardetto/solana-go/rpc/ws"
 )
@@ -45,11 +44,11 @@ type LiquidityStateV4 struct {
 	PunishPcAmount         uint64
 	PunishCoinAmount       uint64
 	OrderbookToInitTime    uint64
-	SwapBaseInAmount       [128]byte
-	SwapQuoteOutAmount     [128]byte
+	SwapBaseInAmount       [16]byte
+	SwapQuoteOutAmount     [16]byte
 	SwapBase2QuoteFee      uint64
-	SwapQuoteInAmount      [128]byte
-	SwapBaseOutAmount      [128]byte
+	SwapQuoteInAmount      [16]byte
+	SwapBaseOutAmount      [16]byte
 	SwapQuote2BaseFee      uint64
 	BaseVault              solana.PublicKey
 	QuoteVault             solana.PublicKey
@@ -129,7 +128,6 @@ func main() {
 			}
 
 			var mint LiquidityStateV4
-			var tokAcc token.Account
 
 			err = bin.NewBorshDecoder(got.Value.Account.Data.GetBinary()).Decode(&mint)
 			if err != nil {
