@@ -116,7 +116,6 @@ func main() {
 		}
 		defer sub.Unsubscribe()
 
-		var mint LiquidityStateV4
 		openTimeOffset := 224
 		mintOffset := 400
 		for {
