@@ -55,16 +55,6 @@ type LiquidityStateV4 struct {
 	QuoteVault             solana.PublicKey
 	BaseMint               solana.PublicKey // 32 bytes
 	QuoteMint              solana.PublicKey // 32 bytes
-	LpMint                 solana.PublicKey // 32 bytes
-	OpenOrders             solana.PublicKey // 32 bytes
-	MarketId               solana.PublicKey // 32 bytes
-	MarketProgramId        solana.PublicKey // 32 bytes
-	TargetOrders           solana.PublicKey // 32 bytes
-	WithdrawQueue          solana.PublicKey // 32 bytes
-	LpVault                solana.PublicKey // 32 bytes
-	Owner                  solana.PublicKey // 32 bytes
-	LpReserve              uint64
-	Padding                [3]uint64 // To handle the seq(u64(), 3, 'padding')
 }
 
 func main() {
@@ -82,7 +72,7 @@ func main() {
 
 	quoteMint := solana.MustPublicKeyFromBase58("So11111111111111111111111111111111111111112")
 	openBook := solana.MustPublicKeyFromBase58("srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX")
-	cached := make(map[solana.PublicKey], 1000000000)
+	cached := make(map[solana.PublicKey]struct{}, 1000000000)
 	now := uint64(time.Now().Unix())
 	program := solana.MustPublicKeyFromBase58("675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8") // serum
 	{
@@ -137,16 +127,15 @@ func main() {
 				panic(err)
 			}
 
-
 			if mint.PoolOpenTime < now {
 				continue
 			}
-			if exist := cached[mint.BaseMint]; exist {
+			if _, exist := cached[mint.BaseMint]; exist {
 				continue
 			}
 			fmt.Println(time.Now().UnixMilli(), "\t", mint.PoolOpenTime, "\t", got.Value.Pubkey.String())
 
-			cached[mint.BaseMint] = true
+			cached[mint.BaseMint] = struct{}{}
 
 			//mint := bytes[baseMintOffset:baseMintOffsetEnd]
 			//fmt.Println(string(poolOpenTime), string(mint))
