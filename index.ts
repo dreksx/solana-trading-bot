@@ -224,9 +224,8 @@ const runListener = async () => {
     const exists = await poolCache.get(poolState.baseMint.toString());
 
     if (!exists && poolOpenTime > runTimestamp) {
-      logger.trace(`Caching new pool for mint: ${poolState.baseMint.toString()}`);
 
-//      poolCache.save(updatedAccountInfo.accountId.toString(), poolState);
+     poolCache.save(updatedAccountInfo.accountId.toString(), poolState);
       //await bot.buy(updatedAccountInfo.accountId, poolState);
     }
   });
