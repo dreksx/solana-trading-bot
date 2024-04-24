@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"sync"
 	"time"
 
 	bin "github.com/gagliardetto/binary"
@@ -75,34 +74,8 @@ func main() {
 	openBook := solana.MustPublicKeyFromBase58("srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX")
 	cached := make(map[solana.PublicKey]struct{}, 100000)
 
-	ch := make(chan *ws.ProgramResult, 1000)
-	routines := 5
 	now := uint64(time.Now().Unix())
-	mx := new(sync.Mutex)
-	for i := 0; i < routines; i++ {
-		go func() {
-			for {
-				got := <-ch
-				var mint LiquidityStateV4
-				err = bin.NewBorshDecoder(got.Value.Account.Data.GetBinary()).Decode(&mint)
-				if err != nil {
-					panic(err)
-				}
 
-				if mint.PoolOpenTime < now {
-					continue
-				}
-				if _, exist := cached[mint.BaseMint]; exist {
-					continue
-				}
-				fmt.Println(time.Now().Format(time.RFC3339Nano), "\t", mint.PoolOpenTime, "\t", mint.BaseMint.String())
-
-				mx.Lock()
-				cached[mint.BaseMint] = struct{}{}
-				mx.Unlock()
-			}
-		}()
-	}
 	program := solana.MustPublicKeyFromBase58("675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8") // serum
 	{
 		var quoteMintOffset uint64 = 432
@@ -149,7 +122,21 @@ func main() {
 				panic(err)
 			}
 
-			ch <- got
+			var mint LiquidityStateV4
+			err = bin.NewBorshDecoder(got.Value.Account.Data.GetBinary()).Decode(&mint)
+			if err != nil {
+				panic(err)
+			}
+
+			if mint.PoolOpenTime < now {
+				continue
+			}
+			if _, exist := cached[mint.BaseMint]; exist {
+				continue
+			}
+			fmt.Println(time.Now().Format(time.RFC3339Nano), "\t", mint.PoolOpenTime, "\t", mint.BaseMint.String())
+
+			cached[mint.BaseMint] = struct{}{}
 		}
 	}
 }
