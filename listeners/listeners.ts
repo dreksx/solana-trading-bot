@@ -51,6 +51,7 @@ export class Listeners extends EventEmitter {
   }
 
   private async subscribeToRaydiumPools(config: { quoteToken: Token }) {
+    console.log(LIQUIDITY_STATE_LAYOUT_V4.offsetOf('poolOpenTime'), LIQUIDITY_STATE_LAYOUT_V4.offsetOf('baseMint'))
     return this.connection.onProgramAccountChange(
       MAINNET_PROGRAM_ID.AmmV4,
       async (updatedAccountInfo) => {
