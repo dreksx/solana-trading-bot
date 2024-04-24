@@ -44,11 +44,11 @@ type LiquidityStateV4 struct {
 	PunishPcAmount         uint64
 	PunishCoinAmount       uint64
 	OrderbookToInitTime    uint64
-	SwapBaseInAmount       solana.PublicKey
-	SwapQuoteOutAmount     solana.PublicKey
+	SwapBaseInAmount       [128]byte
+	SwapQuoteOutAmount     [128]byte
 	SwapBase2QuoteFee      uint64
-	SwapQuoteInAmount      solana.PublicKey
-	SwapBaseOutAmount      solana.PublicKey
+	SwapQuoteInAmount      [128]byte
+	SwapBaseOutAmount      [128]byte
 	SwapQuote2BaseFee      uint64
 	BaseVault              solana.PublicKey
 	QuoteVault             solana.PublicKey
