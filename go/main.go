@@ -72,7 +72,7 @@ func main() {
 
 	quoteMint := solana.MustPublicKeyFromBase58("So11111111111111111111111111111111111111112")
 	openBook := solana.MustPublicKeyFromBase58("srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX")
-	cached := make(map[solana.PublicKey]struct{}, 1000000000)
+	cached := make(map[solana.PublicKey]struct{}, 100000)
 	now := uint64(time.Now().Unix())
 	program := solana.MustPublicKeyFromBase58("675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8") // serum
 	{
@@ -121,7 +121,6 @@ func main() {
 			}
 
 			var mint LiquidityStateV4
-
 			err = bin.NewBorshDecoder(got.Value.Account.Data.GetBinary()).Decode(&mint)
 			if err != nil {
 				panic(err)
@@ -134,11 +133,7 @@ func main() {
 				continue
 			}
 			fmt.Println(time.Now().UnixMilli(), "\t", mint.PoolOpenTime, "\t", got.Value.Pubkey.String())
-
 			cached[mint.BaseMint] = struct{}{}
-
-			//mint := bytes[baseMintOffset:baseMintOffsetEnd]
-			//fmt.Println(string(poolOpenTime), string(mint))
 		}
 	}
 }
