@@ -17,18 +17,18 @@ export class Listeners extends EventEmitter {
     autoSell: boolean;
     cacheNewMarkets: boolean;
   }) {
-    if (config.cacheNewMarkets) {
-      const openBookSubscription = await this.subscribeToOpenBookMarkets(config);
-      this.subscriptions.push(openBookSubscription);
-    }
+    // if (config.cacheNewMarkets) {
+    //   const openBookSubscription = await this.subscribeToOpenBookMarkets(config);
+    //   this.subscriptions.push(openBookSubscription);
+    // }
 
     const raydiumSubscription = await this.subscribeToRaydiumPools(config);
     this.subscriptions.push(raydiumSubscription);
 
-    if (config.autoSell) {
-      const walletSubscription = await this.subscribeToWalletChanges(config);
-      this.subscriptions.push(walletSubscription);
-    }
+    // if (config.autoSell) {
+    //   const walletSubscription = await this.subscribeToWalletChanges(config);
+    //   this.subscriptions.push(walletSubscription);
+    // }
   }
 
   private async subscribeToOpenBookMarkets(config: { quoteToken: Token }) {
