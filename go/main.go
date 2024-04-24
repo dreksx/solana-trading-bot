@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
+	"encoding/binary"
 	"fmt"
 	"os"
 	"time"
 
-	bin "github.com/gagliardetto/binary"
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/rpc"
 	"github.com/gagliardetto/solana-go/rpc/ws"
@@ -116,27 +116,25 @@ func main() {
 		}
 		defer sub.Unsubscribe()
 
+		var mint LiquidityStateV4
+		openTimeOffset := 224
+		// mintOffset := 400
 		for {
 			got, err := sub.Recv()
 			if err != nil {
 				panic(err)
 			}
+			bytes := got.Value.Account.Data.GetBinary()
+			poolOpenTime := binary.LittleEndian.Uint64(bytes[openTimeOffset : openTimeOffset+8])
+			mintValue := solana.PublicKeyFromBytes(bytes[400 : 400+32])
 
-			r := time.Now()
-			var mint LiquidityStateV4
-			err = bin.NewBorshDecoder(got.Value.Account.Data.GetBinary()).Decode(&mint)
-			p := time.Since(r)
-			if err != nil {
-				panic(err)
-			}
-
-			if mint.PoolOpenTime < now {
+			if poolOpenTime < now {
 				continue
 			}
-			if _, exist := cached[mint.BaseMint]; exist {
+			if _, exist := cached[mintValue]; exist {
 				continue
 			}
-			fmt.Println(time.Now().Format(time.RFC3339Nano), "\t", mint.BaseMint.String(), "\t", p)
+			fmt.Println(time.Now().Format(time.RFC3339Nano), "\t", mintValue.String())
 
 			cached[mint.BaseMint] = struct{}{}
 		}
