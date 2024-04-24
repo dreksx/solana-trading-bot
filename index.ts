@@ -224,7 +224,6 @@ const runListener = async () => {
     const exists = await poolCache.get(poolState.baseMint.toString());
 
     if (!exists && poolOpenTime > runTimestamp) {
-      console.log(new Date().toUTCString(), `${updatedAccountInfo.accountId.toString()}`)
       poolCache.save(updatedAccountInfo.accountId.toString(), poolState);
       await bot.buy(updatedAccountInfo.accountId, poolState);
     }
