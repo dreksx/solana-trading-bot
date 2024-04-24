@@ -132,7 +132,7 @@ func main() {
 			if _, exist := cached[mint.BaseMint]; exist {
 				continue
 			}
-			fmt.Println(time.Now().UnixMilli(), "\t", mint.PoolOpenTime, "\t", mint.BaseMint.String())
+			fmt.Println(time.Now().Format(time.RFC3339Nano), "\t", mint.PoolOpenTime, "\t", mint.BaseMint.String())
 			cached[mint.BaseMint] = struct{}{}
 		}
 	}
