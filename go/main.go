@@ -82,7 +82,7 @@ func main() {
 
 	quoteMint := solana.MustPublicKeyFromBase58("So11111111111111111111111111111111111111112")
 	openBook := solana.MustPublicKeyFromBase58("srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX")
-	cached := make(map[string], 1000000000)
+	cached := make(map[solana.PublicKey], 1000000000)
 	now := uint64(time.Now().Unix())
 	program := solana.MustPublicKeyFromBase58("675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8") // serum
 	{
@@ -137,17 +137,16 @@ func main() {
 				panic(err)
 			}
 
-			baseMint := mint.BaseMint.String()
 
-			if mint.PoolOpenTime > now {
+			if mint.PoolOpenTime < now {
 				continue
 			}
-			if exist := cached[baseMint]; exist {
+			if exist := cached[mint.BaseMint]; exist {
 				continue
 			}
-
-			cached[baseMint] = true
 			fmt.Println(time.Now().UnixMilli(), "\t", mint.PoolOpenTime, "\t", got.Value.Pubkey.String())
+
+			cached[mint.BaseMint] = true
 
 			//mint := bytes[baseMintOffset:baseMintOffsetEnd]
 			//fmt.Println(string(poolOpenTime), string(mint))
