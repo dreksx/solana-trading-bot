@@ -226,6 +226,8 @@ const runListener = async () => {
 
   listeners.on('transaction', async (value: any) => {
     logger.trace(value.signature)
+    console.log(value.transaction)
+    
   });
 
   listeners.on('pool', async (updatedAccountInfo: KeyedAccountInfo) => {
