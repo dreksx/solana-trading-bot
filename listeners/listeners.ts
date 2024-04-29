@@ -44,7 +44,7 @@ export class Listeners extends EventEmitter {
         params: [
             {
                 accountRequired: ["675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8", "25hAyBQfoDhfWx9ay6rarbgvWGwDdNqcHsXS3jQ3mTDJ"],
-                accountExclude: ["JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"]
+                accountExclude: []
             },
             {
                 commitment: "processed",
