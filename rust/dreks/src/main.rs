@@ -95,13 +95,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let (mut accounts, unsubscriber) = ps_client.
         program_subscribe(&program, Option::from(config)).await?;
 
-    let mut count = 0;
     let mut now= SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() as u32;
     let mut cache = HashMap::new();
 
     while let Some(response) = accounts.next().await {
         let decoded = response.value.account.data.decode().unwrap();
-
         let mut openTime = LittleEndian::read_u32(&decoded[224..224+8]);
         if openTime < now {
             continue;
@@ -112,7 +110,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let key = mintValue.to_string();
             let date = Local::now();
 
-            println!("{} {:?}, {:?}", date.format("%H:%M:%S%.3f"), openTime, mintValue);
+            println!("{} {:?}, {:?}", date.format("%H:%M:%S%.3f"), mintValue, key);
             if cache.contains_key(&key) {
                 continue
             }
