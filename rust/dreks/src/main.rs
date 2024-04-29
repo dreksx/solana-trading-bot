@@ -10,6 +10,8 @@ use byteorder::{ByteOrder, LittleEndian};
 use std::io::Cursor;
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::collections::HashMap;
+extern crate chrono;
+use chrono::Local;
 
 #[derive(Debug)]
 struct LiquidityStateV4 {
@@ -108,7 +110,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let mintBytes: [u8;32] = decoded[400..432].try_into().expect("Slice with incorrect length");
             let mintValue = Pubkey::from(mintBytes);
             let key = mintValue.to_string();
-            println!("{:?} {:?}, {:?}", SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis(), openTime, mintValue);
+            let date = Local::now();
+
+            println!("{:?} {:?}, {:?}", date.format("%H:%M:%S%.3f"), openTime, mintValue);
             if cache.contains_key(&key) {
                 continue
             }
