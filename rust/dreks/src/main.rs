@@ -66,13 +66,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let ps_client = PubsubClient::new("wss://mainnet.helius-rpc.com/?api-key=b06c8c49-c031-4a59-8e6b-02ae50f63113").await?;
 
-
-
     let quote_mint = Pubkey::from_str("So11111111111111111111111111111111111111112").unwrap();
     let open_book = Pubkey::from_str("srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX").unwrap();
-
-    ;
-
     let vec = vec![6, 0, 0, 0, 0, 0, 0, 0];
 
     let filters = vec![
@@ -104,17 +99,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         if openTime < now {
             continue;
         }
+
         if decoded.len() >= 432 {
             let mintBytes: [u8;32] = decoded[400..432].try_into().expect("Slice with incorrect length");
             let mintValue = Pubkey::from(mintBytes);
             let key = mintValue.to_string();
             let date = Local::now();
 
-            println!("{} {:?}, {:?}", date.format("%H:%M:%S%.3f"), mintValue, key);
             if cache.contains_key(&key) {
                 continue
             }
 
+            println!("{} {:?}, {:?}", date.format("%H:%M:%S%.3f"), mintValue, key);
             cache.insert(key, 1);
         }
     }
