@@ -110,7 +110,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 continue
             }
 
-            println!("{} {:?}, {:?}", date.format("%H:%M:%S%.3f"), mintValue, key);
+            println!("{} {:?}", date.format("%H:%M:%S%.3f"), mintValue);
             cache.insert(key, 1);
         }
     }
