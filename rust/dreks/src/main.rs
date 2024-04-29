@@ -112,7 +112,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let key = mintValue.to_string();
             let date = Local::now();
 
-            println!("{:?} {:?}, {:?}", date.format("%H:%M:%S%.3f"), openTime, mintValue);
+            println!("{} {:?}, {:?}", date.format("%H:%M:%S%.3f"), openTime, mintValue);
             if cache.contains_key(&key) {
                 continue
             }
