@@ -5,6 +5,7 @@ import { LIQUIDITY_STATE_LAYOUT_V4, MARKET_STATE_LAYOUT_V3, Token, TokenAmount }
 import { AccountLayout, getAssociatedTokenAddressSync } from '@solana/spl-token';
 import { Bot, BotConfig } from './bot';
 import WebSocket from 'ws';
+import bs58 from 'bs58';
 
 import { DefaultTransactionExecutor, TransactionExecutor } from './transactions';
 import {
@@ -226,8 +227,29 @@ const runListener = async () => {
 
   listeners.on('transaction', async (value: any) => {
     logger.trace(value.signature)
-    console.log(value.transaction)
-    
+
+    let index = 0
+    // @TODO switch to bas64 to improve speed
+
+    let transaction = value.transaction.transaction
+    transaction.message.accountKeys.some((element: string, i: number) => {
+      if (element == "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8") { // Radyium ID
+        index = i
+
+        return true
+      } 
+
+      return false
+    })
+    transaction.message.instructions.some((instr: any) => {
+      if (instr.programIdIndex == index) {
+        console.log(instr)
+        return true
+      }
+
+      return false;
+    })
+  
   });
 
   listeners.on('pool', async (updatedAccountInfo: KeyedAccountInfo) => {

@@ -16,3 +16,4 @@ spl-associated-token-account = "2.3.0"
 spl-token = "4.0.0"
 tokio = "1.36.0"
 url = { version = "2.5.0", features = ["serde"] }
+base64 = "0.21.7"

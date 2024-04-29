@@ -1,57 +1,97 @@
+use std::str::FromStr;
 use futures_util::StreamExt;
+use solana_sdk::pubkey::Pubkey;
 use solana_client::nonblocking::pubsub_client::PubsubClient;
+use solana_client::rpc_config::RpcProgramAccountsConfig;
+use     solana_account_decoder::{UiAccountEncoding, UiDataSliceConfig};
+use solana_sdk::commitment_config::{CommitmentConfig, CommitmentLevel};
+use solana_client::rpc_filter::{RpcFilterType, Memcmp, MemcmpEncodedBytes};
 
-#[derive(serde::Deserialize)]
-struct Env {
-    ws_url: url::Url,
+
+#[derive(Debug)]
+struct LiquidityStateV4 {
+    status: u64,
+    nonce: u64,
+    max_order: u64,
+    depth: u64,
+    base_decimal: u64,
+    quote_decimal: u64,
+    state: u64,
+    reset_flag: u64,
+    min_size: u64,
+    vol_max_cut_ratio: u64,
+    amount_wave_ratio: u64,
+    base_lot_size: u64,
+    quote_lot_size: u64,
+    min_price_multiplier: u64,
+    max_price_multiplier: u64,
+    system_decimal_value: u64,
+    min_separate_numerator: u64,
+    min_separate_denominator: u64,
+    trade_fee_numerator: u64,
+    trade_fee_denominator: u64,
+    pnl_numerator: u64,
+    pnl_denominator: u64,
+    swap_fee_numerator: u64,
+    swap_fee_denominator: u64,
+    base_need_take_pnl: u64,
+    quote_need_take_pnl: u64,
+    quote_total_pnl: u64,
+    base_total_pnl: u64,
+    pool_open_time: u64,
+    punish_pc_amount: u64,
+    punish_coin_amount: u64,
+    orderbook_to_init_time: u64,
+    swap_base_in_amount: [u8; 16],
+    swap_quote_out_amount: [u8; 16],
+    swap_base2_quote_fee: u64,
+    swap_quote_in_amount: [u8; 16],
+    swap_base_out_amount: [u8; 16],
+    swap_quote2_base_fee: u64,
+    base_vault: Pubkey,
+    quote_vault: Pubkey,
+    base_mint: Pubkey,
+    quote_mint: Pubkey,
 }
+
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let env = envy::from_env::<Env>()?;
+    let program = Pubkey::from_str("675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8").unwrap();
 
-    let ps_client = PubsubClient::new(&env.ws_url.to_string()).await?;
+    let ps_client = PubsubClient::new("wss://mainnet.helius-rpc.com/?api-key=b06c8c49-c031-4a59-8e6b-02ae50f63113").await?;
 
-    let program_id = Pubkey::from_str("675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8")?;
+
+
+    let quote_mint = Pubkey::from_str("So11111111111111111111111111111111111111112").unwrap();
+    let open_book = Pubkey::from_str("srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX").unwrap();
+
+    ;
+
+    let vec = vec![6, 0, 0, 0, 0, 0, 0, 0];
+
     let filters = vec![
-            RpcAccountInfoFilter::DataSize(LIQUIDITY_STATE_LAYOUT_V4.span as usize),
-            RpcAccountInfoFilter::Memcmp {
-                offset: LIQUIDITY_STATE_LAYOUT_V4.offset_of("quoteMint")?,
-                bytes: bs58::decode(quote_token_mint).into_vec()?,
-            },
-            RpcAccountInfoFilter::Memcmp {
-                offset: LIQUIDITY_STATE_LAYOUT_V4.offset_of("marketProgramId")?,
-                bytes: bs58::decode(mainnet_program_id_openbook_market).into_vec()?,
-            },
-            RpcAccountInfoFilter::Memcmp {
-                offset: LIQUIDITY_STATE_LAYOUT_V4.offset_of("status")?,
-                bytes: bs58::encode(&[6, 0, 0, 0, 0, 0, 0, 0]).into_vec()?,
-            },
-        ];
+        RpcFilterType::Memcmp(Memcmp::new(432, MemcmpEncodedBytes::Base64(quote_mint.to_string()))),
+        RpcFilterType::Memcmp(Memcmp::new(560, MemcmpEncodedBytes::Base64(open_book.to_string()))),
+        RpcFilterType::Memcmp(Memcmp::new(0, MemcmpEncodedBytes::Bytes(vec))),
+    ];
+    let commitment = CommitmentConfig::processed();
+    let config = RpcProgramAccountsConfig {
+        filters: Some(filters),
+        account_config: solana_client::rpc_config::RpcAccountInfoConfig {
+            encoding: Some(UiAccountEncoding::Base64),
+            data_slice: None,
+            commitment: Some(commitment),
+            min_context_slot: None,
+        },
+        with_context: None,
+    };
 
-        let config = RpcProgramAccountsConfig {
-            filters: Some(filters),
-            account_config: RpcAccountInfoConfig {
-                encoding: Some(String::from("base64")),
-                commitment: Some(CommitmentConfig::confirmed()),
-                ..Default::default()
-            },
-            ..Default::default()
-        };
-
-        let subscription = client.on_program_account_change(
-            &Pubkey::from_str(mainnet_program_id_amm_v4)?,
-            move |updated_account_info| {
-                // Process updated account info here
-                println!("Updated account: {:?}", updated_account_info);
-            },
-            &config,
-        ).await?;
-
-    let (mut accs, unsubscriber) = ps_client.slot_subscribe().await?;
+    let (mut accounts, unsubscriber) = ps_client.
+        program_subscribe(&program, Option::from(config)).await?;
 
     let mut count = 0;
-    while let Some(response) = accs.next().await {
+    while let Some(response) = accounts.next().await {
         println!("{:?}", response);
         count += 1;
         if count >= 5 {
