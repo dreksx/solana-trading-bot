@@ -17,3 +17,4 @@ spl-token = "4.0.0"
 tokio = "1.36.0"
 url = { version = "2.5.0", features = ["serde"] }
 base64 = "0.21.7"
+byteorder = "1.5.0"

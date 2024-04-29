@@ -3,10 +3,13 @@ use futures_util::StreamExt;
 use solana_sdk::pubkey::Pubkey;
 use solana_client::nonblocking::pubsub_client::PubsubClient;
 use solana_client::rpc_config::RpcProgramAccountsConfig;
-use     solana_account_decoder::{UiAccountEncoding, UiDataSliceConfig};
+use solana_account_decoder::{UiAccountEncoding, UiDataSliceConfig};
 use solana_sdk::commitment_config::{CommitmentConfig, CommitmentLevel};
 use solana_client::rpc_filter::{RpcFilterType, Memcmp, MemcmpEncodedBytes};
-
+use byteorder::{ByteOrder, LittleEndian};
+use std::io::Cursor;
+use std::time::{SystemTime, UNIX_EPOCH};
+use std::collections::HashMap;
 
 #[derive(Debug)]
 struct LiquidityStateV4 {
@@ -71,8 +74,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let vec = vec![6, 0, 0, 0, 0, 0, 0, 0];
 
     let filters = vec![
-        RpcFilterType::Memcmp(Memcmp::new(432, MemcmpEncodedBytes::Base64(quote_mint.to_string()))),
-        RpcFilterType::Memcmp(Memcmp::new(560, MemcmpEncodedBytes::Base64(open_book.to_string()))),
+        RpcFilterType::Memcmp(Memcmp::new(432, MemcmpEncodedBytes::Base58(quote_mint.to_string()))),
+        RpcFilterType::Memcmp(Memcmp::new(560, MemcmpEncodedBytes::Base58(open_book.to_string()))),
         RpcFilterType::Memcmp(Memcmp::new(0, MemcmpEncodedBytes::Bytes(vec))),
     ];
     let commitment = CommitmentConfig::processed();
@@ -91,11 +94,26 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         program_subscribe(&program, Option::from(config)).await?;
 
     let mut count = 0;
+    let mut now= SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() as u32;
+    let mut cache = HashMap::new();
+
     while let Some(response) = accounts.next().await {
-        println!("{:?}", response);
-        count += 1;
-        if count >= 5 {
-            break;
+        let decoded = response.value.account.data.decode().unwrap();
+
+        let mut openTime = LittleEndian::read_u32(&decoded[224..224+8]);
+        if openTime < now {
+            continue;
+        }
+        if decoded.len() >= 432 {
+            let mintBytes: [u8;32] = decoded[400..432].try_into().expect("Slice with incorrect length");
+            let mintValue = Pubkey::from(mintBytes);
+            let key = mintValue.to_string();
+            println!("{:?} {:?}, {:?}", SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis(), openTime, mintValue);
+            if cache.contains_key(&key) {
+                continue
+            }
+
+            cache.insert(key, 1);
         }
     }
 
