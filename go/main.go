@@ -150,7 +150,7 @@ func main() {
 			if _, exist := cached[mintValue]; exist {
 				continue
 			}
-			fmt.Println(time.Now().Format(time.RFC3339Nano), "\t", mintValue.String(), "\t", f)
+			fmt.Println(time.Now().Format("15:04:05.999999999"), "\t", mintValue.String(), "\t", f)
 
 			cached[mintValue] = struct{}{}
 		}
